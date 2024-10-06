@@ -1,2 +1,3 @@
 .idea/
 djvenv/
+db.sqlite3
