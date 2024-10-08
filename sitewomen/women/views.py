@@ -29,7 +29,7 @@ cats_db = [
 
 
 def index(request):
-    posts = Women.objects.filter(is_published=1)
+    posts = Women.published.all()
     data = {
         'title': 'Главная страница',
         'menu': menu,
@@ -71,7 +71,7 @@ def show_category(request, cat_id):
     data = {
         'title': 'Отображение по рубоикам',
         'menu': menu,
-        'posts': data_db,
+        'posts': Women.published.all(),
         'cat_selected': cat_id,
     }
     return render(request, 'women/index.html', context=data)
