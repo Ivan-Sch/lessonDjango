@@ -25,7 +25,7 @@ class Women(models.Model):
                             on_delete=models.PROTECT)  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category), удалятся все записи из вторичной (Women)
 
     objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects
-    published = PublishedModel()  # пользовтельский менеджер
+    published = PublishedModel()  # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter
 
     class Meta:
         ordering = ['-time_create']
@@ -43,6 +43,9 @@ class Women(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100, db_index=True)
     slug = models.SlugField(max_length=255, unique=True, db_index=True)
+
+    def get_absolute_url(self):
+        return reverse('category', kwargs={'cat_slug': self.slug})
 
     def __str__(self):
         return self.name

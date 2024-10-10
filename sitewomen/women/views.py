@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
-from .models import Women
+from .models import Women, Category
 
 menu = [{'title': "О сайте", 'url_name': 'about'},
         {'title': "Добавить статью", 'url_name': 'add_page'},
@@ -20,11 +20,7 @@ data_db = [
     {'id': 3, 'title': 'Джулия Робертс', 'content': 'Биография Джулия Робертс', 'is_published': True},
 ]
 
-cats_db = [
-    {'id': 1, 'name': 'Актрисы'},
-    {'id': 2, 'name': 'Певицы'},
-    {'id': 3, 'name': 'Спортсменки'},
-]
+
 
 
 
@@ -44,7 +40,8 @@ def about(request):
 
 
 def show_post(request, post_slug):
-    post = get_object_or_404(Women, slug=post_slug)
+    post = get_object_or_404(Women, slug=post_slug) #возвращает запись (объект) из таблицы БД (в данном случае по слагу равным...), если она есть, иначе генерируется исключение 404 - страница не найдена
+
     data = {
         'title': post.title,
         'menu': menu,
@@ -67,12 +64,15 @@ def login(request):
     return HttpResponse("Авторизация")
 
 
-def show_category(request, cat_id):
+def show_category(request, cat_slug):
+    category = get_object_or_404(Category, slug=cat_slug)
+    posts = Women.published.filter(cat_id = category.pk)
+
     data = {
-        'title': 'Отображение по рубоикам',
+        'title': f'Отображение по {category.name}',
         'menu': menu,
-        'posts': Women.published.all(),
-        'cat_selected': cat_id,
+        'posts': posts, # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter----- в данном случае выведуся все записи с паблишед = 1, но мы можем еще раз отфилтровать
+        'cat_selected': category.pk,
     }
     return render(request, 'women/index.html', context=data)
 
