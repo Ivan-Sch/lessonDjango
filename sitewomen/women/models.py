@@ -26,6 +26,9 @@ class Women(models.Model):
                             related_name="cats")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
     # удалятся все записи из вторичной (Women)
     tags = models.ManyToManyField('TagPost', blank=True, related_name="tags")
+    husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman')
+
+
 
     objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects
     published = PublishedModel()  # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter
@@ -63,3 +66,11 @@ class TagPost(models.Model):
 
     def __str__(self):
         return self.tag
+
+
+class Husband(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField(null=True)
+
+    def __str__(self):
+        return self.name
