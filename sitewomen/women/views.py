@@ -4,13 +4,13 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
-from .models import Women, Category
+from .models import Women, Category, TagPost
 
 menu = [{'title': "О сайте", 'url_name': 'about'},
         {'title': "Добавить статью", 'url_name': 'add_page'},
         {'title': "Обратная связь", 'url_name': 'contact'},
         {'title': "Войти", 'url_name': 'login'}
-]
+        ]
 
 data_db = [
     {'id': 1, 'title': 'Анджелина Джоли', 'content': '''<h1>Анджелина Джоли</h1> (англ. Angelina Jolie[7], при рождении Войт (англ. Voight), ранее Джоли Питт (англ. Jolie Pitt); род. 4 июня 1975, Лос-Анджелес, Калифорния, США) — американская актриса кино, телевидения и озвучивания, кинорежиссёр, сценаристка, продюсер, фотомодель, посол доброй воли ООН.
@@ -19,9 +19,6 @@ data_db = [
     {'id': 2, 'title': 'Марго Робби', 'content': 'Биография Марго Робби', 'is_published': False},
     {'id': 3, 'title': 'Джулия Робертс', 'content': 'Биография Джулия Робертс', 'is_published': True},
 ]
-
-
-
 
 
 def index(request):
@@ -40,7 +37,8 @@ def about(request):
 
 
 def show_post(request, post_slug):
-    post = get_object_or_404(Women, slug=post_slug) #возвращает запись (объект) из таблицы БД (в данном случае по слагу равным...), если она есть, иначе генерируется исключение 404 - страница не найдена
+    post = get_object_or_404(Women,
+                             slug=post_slug)  # возвращает запись (объект) из таблицы БД (в данном случае по слагу равным...), если она есть, иначе генерируется исключение 404 - страница не найдена
 
     data = {
         'title': post.title,
@@ -66,14 +64,29 @@ def login(request):
 
 def show_category(request, cat_slug):
     category = get_object_or_404(Category, slug=cat_slug)
-    posts = Women.published.filter(cat_id = category.pk)
+    posts = Women.published.filter(cat_id=category.pk)
 
     data = {
         'title': f'Отображение по {category.name}',
         'menu': menu,
-        'posts': posts, # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter----- в данном случае выведуся все записи с паблишед = 1, но мы можем еще раз отфилтровать
+        'posts': posts,
+        # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter----- в данном случае выведуся все записи с паблишед = 1, но мы можем еще раз отфилтровать
         'cat_selected': category.pk,
     }
+    return render(request, 'women/index.html', context=data)
+
+
+def show_tag_postlist(request, tag_slug):
+    tag = get_object_or_404(TagPost, slug=tag_slug)
+    posts = tag.tags.filter(is_published = Women.Status.PUBLISHED)
+
+    data = {
+        'title': f'Тег: {tag.tag}',
+        'menu': menu,
+        'posts': posts,
+        'cat_selected': None,
+    }
+
     return render(request, 'women/index.html', context=data)
 
 

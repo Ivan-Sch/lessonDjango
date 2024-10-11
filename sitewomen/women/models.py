@@ -5,7 +5,7 @@ from django.urls import reverse
 # пользовтельский менеджер
 class PublishedModel(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(is_published=1)
+        return super().get_queryset().filter(is_published=Women.Status.PUBLISHED)
 
 
 class Women(models.Model):
@@ -22,7 +22,10 @@ class Women(models.Model):
     is_published = models.BooleanField(choices=Status.choices,
                                        default=Status.DRAFT)  # меняется добавляется choices из -за добавления status'a
     cat = models.ForeignKey('Category',
-                            on_delete=models.PROTECT)  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category), удалятся все записи из вторичной (Women)
+                            on_delete=models.PROTECT,
+                            related_name="cats")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
+    # удалятся все записи из вторичной (Women)
+    tags = models.ManyToManyField('TagPost', blank=True, related_name="tags")
 
     objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects
     published = PublishedModel()  # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter
@@ -49,3 +52,14 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class TagPost(models.Model):
+    tag = models.CharField(max_length=100, db_index=True)
+    slug = models.SlugField(max_length=255, unique=True, db_index=True)
+
+    def get_absolute_url(self):
+        return reverse('tag', kwargs={'tag_slug': self.slug})
+
+    def __str__(self):
+        return self.tag
