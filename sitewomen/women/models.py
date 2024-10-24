@@ -38,6 +38,8 @@ class Women(models.Model):
         indexes = [
             models.Index(fields=['-time_create']),
         ]
+        verbose_name = 'Известные женщины' #для название в ед.ч. таблицы в admin для самой модели
+        verbose_name_plural = 'Известные женщины' #для название во мн.ч. таблицы в admin для самой модели
 
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_slug': self.slug})  # для возврата url каждого экземпляра строки из БД
