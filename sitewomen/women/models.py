@@ -23,7 +23,7 @@ class Women(models.Model):
                                        default=Status.DRAFT)  # меняется добавляется choices из -за добавления status'a
     cat = models.ForeignKey('Category',
                             on_delete=models.PROTECT,
-                            related_name="cats")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
+                            related_name="posts")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
     # удалятся все записи из вторичной (Women)
     tags = models.ManyToManyField('TagPost', blank=True, related_name="tags")
     husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman')
@@ -46,7 +46,7 @@ class Women(models.Model):
         return self.title
 
 
-class Category(models.Model):
+class  Category(models.Model):
     name = models.CharField(max_length=100, db_index=True)
     slug = models.SlugField(max_length=255, unique=True, db_index=True)
 
