@@ -14,19 +14,19 @@ class Women(models.Model):
         DRAFT = 0, 'Черновик'
         PUBLISHED = 1, 'Опубликовано'
 
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, verbose_name="Заголовок")
     slug = models.SlugField(max_length=255, db_index=True, unique=True)
-    content = models.TextField(blank=True)
-    time_create = models.DateTimeField(auto_now_add=True)
-    time_update = models.DateTimeField(auto_now=True)
-    is_published = models.BooleanField(choices=Status.choices,
-                                       default=Status.DRAFT)  # меняется добавляется choices из -за добавления status'a
+    content = models.TextField(blank=True, verbose_name="Текст статьи")
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+    time_update = models.DateTimeField(auto_now=True, verbose_name="Время изменения")
+    is_published = models.BooleanField(choices=tuple(map(lambda x: (bool(x[0]), x[1]), Status.choices)),
+                                       default=Status.DRAFT, verbose_name="Статус")  # меняется добавляется choices из-за добавления status'a ДАЛЕЕ позже замено на перебор в булевые згначения для админ панели, чтобы было видно нынешние показали этого поля и можно было выбирать
     cat = models.ForeignKey('Category',
                             on_delete=models.PROTECT,
-                            related_name="posts")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
+                            related_name="posts", verbose_name="Категории")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
     # удалятся все записи из вторичной (Women)
-    tags = models.ManyToManyField('TagPost', blank=True, related_name="tags")
-    husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman')
+    tags = models.ManyToManyField('TagPost', blank=True, related_name="tags", verbose_name="Тэги")
+    husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman', verbose_name="Муж")
 
 
 
@@ -49,9 +49,12 @@ class Women(models.Model):
 
 
 class  Category(models.Model):
-    name = models.CharField(max_length=100, db_index=True)
+    name = models.CharField(max_length=100, db_index=True, verbose_name="Категория")
     slug = models.SlugField(max_length=255, unique=True, db_index=True)
 
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
     def get_absolute_url(self):
         return reverse('category', kwargs={'cat_slug': self.slug})
 
