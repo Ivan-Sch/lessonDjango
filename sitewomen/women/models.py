@@ -1,6 +1,16 @@
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.urls import reverse
 
+
+def translit_to_eng(s: str) -> str:
+    d = {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
+         'е': 'e', 'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i', 'к': 'k',
+         'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+         'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch',
+         'ш': 'sh', 'щ': 'shch', 'ь': '', 'ы': 'y', 'ъ': '', 'э': 'r', 'ю': 'yu', 'я': 'ya'}
+
+    return "".join(map(lambda x: d[x] if d.get(x, False) else x, s.lower()))
 
 # пользовтельский менеджер
 class PublishedModel(models.Manager):
@@ -43,6 +53,18 @@ class Women(models.Model):
 
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_slug': self.slug})  # для возврата url каждого экземпляра строки из БД
+
+
+    #ф-я save автоматически включается при сохранени записи
+    #функция чтобы автоматически заполнялся slug. Т.к. мы его запретили редактировать, т.е. он пустой при создании. Он сможет создаться один раз пустым, а
+    #второй раз нет, т.к. у нас поле slug должно быть уникальным (unique=True)
+
+    # def save(self, *args, **kwargs):
+    #     # self.slug = slugify(self.title , allow_unicode=True) #вместо allow_unicode=True дял перевода толкьо для латиницы,
+    #     # тогда можно прописать свою логику (функцию) дял перевода русских в англ
+    #     self.slug = slugify(translit_to_eng(self.title))
+    #     super().save(*args, **kwargs) #Но есть путь гораздо проще, но он применим только для админ-панели.
+    #     # Уберем метод save() из модели Women, а в классе WomenAdmin пропишем следующий атрибут: prepopulated_fields = {"slug": ("title",)}
 
     def __str__(self):
         return self.title

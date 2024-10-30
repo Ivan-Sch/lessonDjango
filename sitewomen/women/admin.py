@@ -26,7 +26,7 @@ class MarriedFilter(admin.SimpleListFilter):
 class WomenAdmin(admin.ModelAdmin):
     list_display = ('title', 'time_create', 'is_published', 'cat', 'brief_info')
     list_display_links = ('title',)
-    list_editable = ('is_published',)
+    list_editable = ('is_published',) #для изменения полей (редактируемое поле)
     ordering = ['-time_create', 'title']
     list_per_page = 5
     actions = ['set_published', "set_draft"] # прописывается для пользовталеского действия
@@ -34,6 +34,15 @@ class WomenAdmin(admin.ModelAdmin):
     list_filter = [MarriedFilter, 'cat__name', 'is_published'] #создается фильтр таблицы справа от таблицы, по каким-то параметрам, которыйе указаны
     # также тут указана ссылка на класс MarriedFilter- свой собвсвтенный фильтр, со своей логикой работы
 
+    fields = ['title', 'slug', 'content', 'cat', 'husband', 'tags'] #поля которые будут отражаться в админ панели для редактирвания записи
+    # exclude = ['tags', 'is_published'] #Указывается список исключаемых полей
+    # readonly_fields = ['slug'] #только для чтения (редатктировать нельзя)
+    prepopulated_fields = {"slug": ("title",)} #будет заполянтся slug на основе titile, переводив русские в англ....
+    # если мы выбираем такой вариант, то нужно поле slug сделать редактируемым
+
+    #можно настроить виджит для типа связи многие ко многим
+    filter_horizontal = ['tags']
+    # filter_vertical = ['tags']
 
    #создается пользовтаельское поле (стобец) в админ панели, которого нет в БД
     @admin.display(description="Краткое описание", ordering='content' ) #для названия стобца. Если бы его не было, то было бы название метода brief_info. Ordering, чтобы у поля была сортировка
