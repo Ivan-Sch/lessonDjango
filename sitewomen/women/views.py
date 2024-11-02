@@ -14,8 +14,6 @@ menu = [{'title': "О сайте", 'url_name': 'about'},
         ]
 
 
-
-
 def index(request):
     posts = Women.published.all().select_related('cat')
     data = {
@@ -48,13 +46,19 @@ def show_post(request, post_slug):
 def addpage(request):
     if request.method == 'POST':
         form = AddPostForm(request.POST)
-        if form.is_valid():
-            print(form.cleaned_data)
+        if form.is_valid(): #проверяет поля на корректность заполнения
+            try:
+                Women.objects.create(
+                    **form.cleaned_data)  # поля названия формы должны совадать с полями модели, чтобы можно было их раскрыть при не связоной с моделью
+                return redirect('home')  # после отпарвления данных выходим на главную страницу
+            except Exception as e:
+                print(e)
+                form.add_error(None, 'Ошибка добавления поста')
     else:
         form = AddPostForm()
     data = {'menu': menu, 'title': 'Добавление статьи', 'form': form}
-    return render(request, 'women/addpage.html', data)
 
+    return render(request, 'women/addpage.html', data)
 
 
 def contact(request):
@@ -81,7 +85,7 @@ def show_category(request, cat_slug):
 
 def show_tag_postlist(request, tag_slug):
     tag = get_object_or_404(TagPost, slug=tag_slug)
-    posts = tag.tags.filter(is_published = Women.Status.PUBLISHED) # обращение к объектам (к постам) данного тэга
+    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED)  # обращение к объектам (к постам) данного тэга
 
     data = {
         'title': f'Тег: {tag.tag}',

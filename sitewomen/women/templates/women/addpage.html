@@ -12,7 +12,14 @@
 <form action="" method="POST">
     {% csrf_token %}
 <!--    берем нашу форму и охватываем тегом p-->
-    {{ form.as_p }}
+<!--    {{ form.as_p }}-->
+
+    <div class="form-error">{{ form.non_field_errors }}</div> <!--для вывода ошибок валидации, не связанных с заполнением того или иного поля-->
+    {% for f in form %}
+    <!-- в этом случае мы не можем менять интерфейс каждого поля отдельно, т.к. class одинаковый, но мы можем прописать отдельно в самой форме поля class-->
+    <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
+    <div class="form-error">{{ f.errors }}</div> <!--будет выводиться ошибка (например: неверно заполнил поле)-->
+    {% endfor %}
     <p><button type="submit">Отправить</button></p>
 </form>
 {% endblock %}
