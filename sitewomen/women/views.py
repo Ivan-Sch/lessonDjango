@@ -48,13 +48,16 @@ def addpage(request):
         form = AddPostForm(request.POST)
 
         if form.is_valid(): #проверяет поля на корректность заполнения
-            try:
-                Women.objects.create(
-                    **form.cleaned_data)  # поля названия формы должны совадать с полями модели, чтобы можно было их раскрыть при не связоной с моделью
-                return redirect('home')  # после отпарвления данных выходим на главную страницу
-            except Exception as e:
-                print(e)
-                form.add_error(None, 'Ошибка добавления поста')
+            form.save()  #- для связанной формы с моделью можно напрямую сохрянть данные в БД
+            return redirect('home')
+            #для формы не связнной делается так:
+            # try:
+            #     Women.objects.create(
+            #         **form.cleaned_data)  # поля названия формы должны совадать с полями модели, чтобы можно было их раскрыть при не связоной с моделью
+            #     return redirect('home')  # после отпарвления данных выходим на главную страницу
+            # except Exception as e:
+            #     print(e)
+            #     form.add_error(None, 'Ошибка добавления поста')
     else:
         form = AddPostForm()
     data = {'menu': menu, 'title': 'Добавление статьи', 'form': form}
