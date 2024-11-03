@@ -46,6 +46,7 @@ def show_post(request, post_slug):
 def addpage(request):
     if request.method == 'POST':
         form = AddPostForm(request.POST)
+
         if form.is_valid(): #проверяет поля на корректность заполнения
             try:
                 Women.objects.create(
