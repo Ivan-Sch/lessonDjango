@@ -76,3 +76,8 @@ class AddPostForm(forms.ModelForm):
             raise ValidationError('Длина превышает 50 символов')
 
         return title
+
+
+# Форма для отправки файла относится к ф-ии предславния about и about.html
+class UploadFileForm(forms.Form):
+    file = forms.FileField(label="Файл")

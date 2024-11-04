@@ -2,4 +2,12 @@
 
 {% block content %}
 <h1>{{title}}</h1>
+<!--Для формы отправки файла -->
+<form action="" method="post" enctype="multipart/form-data"> <!-- action- обработчик //// обязательный параметр enctype="multipart/form-data"-->
+    {% csrf_token %}
+<!--    <p ><input type="file" name="file_upload"></p>--> <!--  если бы не было формы-->
+    {{ form.as_p }}
+    <p ><button type="submit">Отправить</button></p>
+</form>
+
 {% endblock %}

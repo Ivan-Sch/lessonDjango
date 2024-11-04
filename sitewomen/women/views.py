@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
-from .forms import AddPostForm
+from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost
 
 menu = [{'title': "О сайте", 'url_name': 'about'},
@@ -24,9 +24,26 @@ def index(request):
     }
     return render(request, 'women/index.html', context=data)
 
+# функция для сохранения файла
+def handle_uploaded_file(f):
+    with open(f"uploads/{f.name}", "wb+") as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
+
+
 
 def about(request):
-    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu})
+    if request.method == "POST":
+        form = UploadFileForm(request.POST, request.FILES) #т.к. работает с фалйми то ипшется второй аргумент
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['file'])  # для сохранения файла на сервер
+            # "files", потому что в форме у нас поле files, если бы было без формы, то смотрели бы на about.html name="file_upload">
+    else:
+        form = UploadFileForm()
+
+    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu, 'form': form})
 
 
 def show_post(request, post_slug):
@@ -47,10 +64,10 @@ def addpage(request):
     if request.method == 'POST':
         form = AddPostForm(request.POST)
 
-        if form.is_valid(): #проверяет поля на корректность заполнения
-            form.save()  #- для связанной формы с моделью можно напрямую сохрянть данные в БД
+        if form.is_valid():  # проверяет поля на корректность заполнения
+            form.save()  # - для связанной формы с моделью можно напрямую сохрянть данные в БД
             return redirect('home')
-            #для формы не связнной делается так:
+            # для формы не связнной делается так:
             # try:
             #     Women.objects.create(
             #         **form.cleaned_data)  # поля названия формы должны совадать с полями модели, чтобы можно было их раскрыть при не связоной с моделью
