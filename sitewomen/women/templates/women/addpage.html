@@ -9,7 +9,10 @@
 <!--ТЕГ lable для описания вводимого поля-->
 <!--по name будут отображаться данные в request.GET-->
 
-<form action="" method="POST">
+
+
+<!--enctype="multipart/form-data" для работы ФОРМЫ с файлами ОБЯЗАТЕЛЬНО-->
+<form action="" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 <!--    берем нашу форму и охватываем тегом p-->
 <!--    {{ form.as_p }}-->

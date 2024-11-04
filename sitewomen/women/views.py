@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
 from .forms import AddPostForm, UploadFileForm
-from .models import Women, Category, TagPost
+from .models import Women, Category, TagPost, UploadFiles
 
 menu = [{'title': "О сайте", 'url_name': 'about'},
         {'title': "Добавить статью", 'url_name': 'add_page'},
@@ -38,8 +38,17 @@ def about(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES) #т.к. работает с фалйми то ипшется второй аргумент
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])  # для сохранения файла на сервер
-            # "files", потому что в форме у нас поле files, если бы было без формы, то смотрели бы на about.html name="file_upload">
+
+            # # ДЛЯ НЕ СВЯЗАННОЙ ФОРМЫ С МОДЕЛЬЮ (2 способа)
+            # 1 способ когда не згаржуем в БД
+            # handle_uploaded_file(request.FILES['file'])  # для сохранения файла на сервер c не связанной таблицей
+            # # "files", потому что в форме у нас поле files, если бы было без формы, то смотрели бы на about.html name="file_upload">
+
+            # 2 способ когда загружем в БД
+            fp = UploadFiles(file=form.cleaned_data['file']) #UploadFiles - модель. СОХРАНЕНИЕ бдует в upload_to – каталог т .к. указалив самой модели,
+            # если мы хотим загружать в общую папку то в конфигирации MEDIA_ROOT = BASE_DIR / 'media'
+            fp.save()
+
     else:
         form = UploadFileForm()
 
@@ -62,7 +71,7 @@ def show_post(request, post_slug):
 
 def addpage(request):
     if request.method == 'POST':
-        form = AddPostForm(request.POST)
+        form = AddPostForm(request.POST, request.FILES) #т.к. идет работа сохранея файлов , то надо добавить request.FILES
 
         if form.is_valid():  # проверяет поля на корректность заполнения
             form.save()  # - для связанной формы с моделью можно напрямую сохрянть данные в БД
