@@ -1,4 +1,6 @@
 from django.contrib import admin, messages
+from django.utils.safestring import mark_safe
+
 from .models import Women, Category
 
 
@@ -24,7 +26,7 @@ class MarriedFilter(admin.SimpleListFilter):
 
 @admin.register(Women)
 class WomenAdmin(admin.ModelAdmin):
-    list_display = ('title', 'time_create', 'is_published', 'cat', 'brief_info')
+    list_display = ('title', 'post_photo', 'time_create', 'is_published', 'cat')
     list_display_links = ('title',)
     list_editable = ('is_published',) #для изменения полей (редактируемое поле)
     ordering = ['-time_create', 'title']
@@ -34,20 +36,27 @@ class WomenAdmin(admin.ModelAdmin):
     list_filter = [MarriedFilter, 'cat__name', 'is_published'] #создается фильтр таблицы справа от таблицы, по каким-то параметрам, которыйе указаны
     # также тут указана ссылка на класс MarriedFilter- свой собвсвтенный фильтр, со своей логикой работы
 
-    fields = ['title', 'slug', 'content', 'cat', 'husband', 'tags'] #поля которые будут отражаться в админ панели для редактирвания записи
+    fields = ['title', 'slug', 'content', 'photo', 'post_photo', 'cat', 'husband', 'tags'] #поля которые будут отражаться в админ панели при открывание записи для ее редактирвания
     # exclude = ['tags', 'is_published'] #Указывается список исключаемых полей
-    # readonly_fields = ['slug'] #только для чтения (редатктировать нельзя)
+    readonly_fields = ['post_photo'] #только для чтения (редатктировать нельзя)
     prepopulated_fields = {"slug": ("title",)} #будет заполянтся slug на основе titile, переводив русские в англ....
     # если мы выбираем такой вариант, то нужно поле slug сделать редактируемым
 
     #можно настроить виджит для типа связи многие ко многим
     filter_horizontal = ['tags']
     # filter_vertical = ['tags']
+    save_on_top = True #панель сохранения, удаления была сверху при редактривание записей
+   # #создается пользовтаельское поле (стобец) в админ панели, которого нет в БД
+   #  @admin.display(description="Краткое описание", ordering='content' ) #description для названия стобца. Если бы его не было, то было бы название метода brief_info. Ordering, чтобы у поля была сортировка
+   #  def brief_info(self, women: Women):
+   #      return f"Описание {len(women.content)} символов."
+   #  ЗАМЕНИМ НА ДРУГОЕ, ЧТОБЫ БЫЛО ИЗОБРАЖЕНИЕ
+    @admin.display(description="Изображение")
+    def post_photo(self, women: Women):
+        if women.photo:
+            return mark_safe(f"<img src='{women.photo.url}' width=50>")
+        return "Без фото"
 
-   #создается пользовтаельское поле (стобец) в админ панели, которого нет в БД
-    @admin.display(description="Краткое описание", ordering='content' ) #для названия стобца. Если бы его не было, то было бы название метода brief_info. Ordering, чтобы у поля была сортировка
-    def brief_info(self, women: Women):
-        return f"Описание {len(women.content)} символов."
 
 
     #Создание пользовательских действий/ На самом верху списка расположен в админ панели
