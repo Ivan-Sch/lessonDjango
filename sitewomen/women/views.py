@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 from django.views import View
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, DetailView
 
 from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost, UploadFiles
@@ -116,7 +116,21 @@ def show_post(request, post_slug):
 
     return render(request, "women/post.html", data)
 
+#замена show_post на КЛАСС для отдельного поста
+class ShowPost(DetailView):
+    model = Women
+    template_name = 'women/post.html'
+    slug_url_kwarg = 'post_slug' #DetailView ищет записи в модели по pk or slug указанный в URL, но у нашего URL slug другой - таким образом мы определяем, который в urls
+    context_object_name = 'post'
+    def get_context_data(self, **kwargs):
 
+        context = super().get_context_data(**kwargs)
+        print(context)
+        context['title'] = context['post']
+        context['menu'] = menu
+        return context
+    def get_object(self, queryset=None):
+        return get_object_or_404(Women.published, slug=self.kwargs[self.slug_url_kwarg]) #если бы не было self.slug_url_kwarg, то можно было бы указать как в URl слаг 'post_slug'
 
 
 
@@ -218,7 +232,7 @@ class WomenCategory(ListView):
         return context
 
     def get_queryset(self):
-        return Women.published.filter(cat__slug=self.kwargs['cat_slug']).select_related('cat')
+        return Women.published.filter(cat__slug=self.kwargs['cat_slug']).select_related('cat') #cat_slug' -  bp URLs
 
 
 
