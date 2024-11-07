@@ -1,10 +1,10 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 from django.views import View
-from django.views.generic import TemplateView, ListView, DetailView
+from django.views.generic import TemplateView, ListView, DetailView, FormView
 
 from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost, UploadFiles
@@ -161,20 +161,39 @@ class ShowPost(DetailView):
 #
 #     return render(request, 'women/addpage.html', data)
 
-# ЗАМЕНА НА КЛАСС ПРЕДСТАВЛЕНИЯ
-class AddPage(View):
-    def get(self, request):
-        form = AddPostForm()
-        return render(request, 'women/addpage.html', {'menu': menu, 'title': 'Добавление статьи', 'form': form})
+# ЗАМЕНА addpage НА КЛАСС ПРЕДСТАВЛЕНИЯ
+# class AddPage(View):
+#     def get(self, request):
+#         form = AddPostForm()
+#         return render(request, 'women/addpage.html', {'menu': menu, 'title': 'Добавление статьи', 'form': form})
+#
+#     def post(self, request):
+#         form = AddPostForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('home')
+#
+#         return render(request, 'women/addpage.html', {'menu': menu, 'title': 'Добавление статьи', 'form': form})
 
-    def post(self, request):
-        form = AddPostForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
+# ЗАМЕНА AddPage(View) на FormView
 
-        return render(request, 'women/addpage.html', {'menu': menu, 'title': 'Добавление статьи', 'form': form})
+class AddPage(FormView):
+    form_class = AddPostForm #указываеься имя формы
+    template_name = 'women/addpage.html'
+    success_url = reverse_lazy('home') # Для перенаправления после отправки формы. reverse(). Она пытается
+    # построить маршрут по имени 'home', но этот маршрут на момент формирования класса AddPage не определен.
+    # В таких ситуациях следует пользоваться другой аналогичной функцией reverse_lazy()
+    extra_context = {
+        'menu': menu,
+        'title': 'Добавление статьи',
+    }
 
+    # Для сохраения данных в БД Этот метод вызывается только после успешной проверки всех переданных данных
+    # формы. Параметр form – это ссылка на заполненную форму.
+    # Так как метод form_valid() вызывается после проверки данных, то в нем доступен словарь form.cleaned_data
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
 
