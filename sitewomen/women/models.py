@@ -45,7 +45,7 @@ class Women(models.Model):
 
 
 
-    objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects
+    objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects при создании пользовтаельского менеджера
     published = PublishedModel()  # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter
 
     class Meta:
@@ -71,8 +71,8 @@ class Women(models.Model):
     #     super().save(*args, **kwargs) #Но есть путь гораздо проще, но он применим только для админ-панели.
     #     # Уберем метод save() из модели Women, а в классе WomenAdmin пропишем следующий атрибут: prepopulated_fields = {"slug": ("title",)}
 
-    def __str__(self):
-        return self.title
+    # def __str__(self):
+    #     return self.title
 
 
 class  Category(models.Model):

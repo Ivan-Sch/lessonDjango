@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
+from django.views import View
+from django.views.generic import TemplateView, ListView
 
 from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost, UploadFiles
@@ -14,15 +16,64 @@ menu = [{'title': "О сайте", 'url_name': 'about'},
         ]
 
 
-def index(request):
-    posts = Women.published.all().select_related('cat')
-    data = {
-        'title': 'Главная страница',
-        'menu': menu,
-        'posts': posts,
-        'cat_selected': 0,
-    }
-    return render(request, 'women/index.html', context=data)
+# def index(request):
+#     posts = Women.published.all().select_related('cat')
+#     data = {
+#         'title': 'Главная страница',
+#         'menu': menu,
+#         'posts': posts,
+#         'cat_selected': 0,
+#     }
+#     return render(request, 'women/index.html', context=data)
+
+# ЗАМЕНА index представления:
+# class WomenHome(TemplateView):
+#     template_name = 'women/index.html'
+#     # extra_context = {  # для стаического пути на момент прихода страница
+#     #     'title': 'Главная страница',
+#     #     'menu': menu,
+#     #     'posts': Women.published.all().select_related('cat'),
+#     #     'cat_selected': 0,
+#     # }
+#     #
+#     # можно передавать и статические и динамические данные обработки: Если теперь попробовать поменять значения cat_id
+#     # в GET-запросе, то будем видеть подсветку различных разделов. Правда, само
+#     # содержимое будет оставаться прежним, т.к. мы этот функционал здесь
+#     # не прописывали. Я лишь хотел показать отличия между методом get_context_data() и атрибутом extra_context.
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'Главная страница'
+#         context['menu'] = menu
+#         context['posts'] = Women.published.all().select_related('cat')
+#         context['cat_selected'] = int(self.request.GET.get('cat_id', 0))
+#         return context
+
+
+# ЗАМЕНА index на класс от ListView - связка с таблицей БД
+class WomenHome(ListView):
+    # model = Women #указыватся модель из которой будут браться записи, но тогда будут все данные из этой модели (черновики тоже),
+    # но нам надо паблишды, используеься метод   def get_queryset(self)
+
+    # Шаблон для данного представления берется по правилу:
+    # <имя приложения>/<имя модели>_list.html ----- women/women_list.html
+    template_name = 'women/index.html'  # но у нас другой шаблон, поэтому явно указываем
+
+    # Для отображения данных которые передается в шаблон (В нем используется posts), ListView формирует сам {% for p in object_list %}, вместо {% for p in posts %} как было до этого
+    context_object_name = 'posts'  # хранит в перменной 'posts' возвращенный get_queryset(self), как в ф-ии data = {'posts': posts} - это тот же'posts', а также хранит данные через model = Women
+
+    # который передается в шаблон ТАКЖЕ ЭТО object_list
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Главная страница'
+        context['menu'] = menu
+        context['cat_selected'] = 0
+        return context
+
+    def get_queryset(self):
+        return Women.published.all().select_related('cat')
+
 
 # функция для сохранения файла
 def handle_uploaded_file(f):
@@ -31,21 +82,18 @@ def handle_uploaded_file(f):
             destination.write(chunk)
 
 
-
-
-
 def about(request):
     if request.method == "POST":
-        form = UploadFileForm(request.POST, request.FILES) #т.к. работает с фалйми то ипшется второй аргумент
+        form = UploadFileForm(request.POST, request.FILES)  # т.к. работает с фалйми то ипшется второй аргумент
         if form.is_valid():
-
             # # ДЛЯ НЕ СВЯЗАННОЙ ФОРМЫ С МОДЕЛЬЮ (2 способа)
             # 1 способ когда не згаржуем в БД
             # handle_uploaded_file(request.FILES['file'])  # для сохранения файла на сервер c не связанной таблицей
             # # "files", потому что в форме у нас поле files, если бы было без формы, то смотрели бы на about.html name="file_upload">
 
             # 2 способ когда загружем в БД
-            fp = UploadFiles(file=form.cleaned_data['file']) #UploadFiles - модель. СОХРАНЕНИЕ бдует в upload_to – каталог т .к. указалив самой модели,
+            fp = UploadFiles(file=form.cleaned_data[
+                'file'])  # UploadFiles - модель. СОХРАНЕНИЕ бдует в upload_to – каталог т .к. указалив самой модели,
             # если мы хотим загружать в общую папку то в конфигирации MEDIA_ROOT = BASE_DIR / 'media'
             fp.save()
 
@@ -69,26 +117,57 @@ def show_post(request, post_slug):
     return render(request, "women/post.html", data)
 
 
-def addpage(request):
-    if request.method == 'POST':
-        form = AddPostForm(request.POST, request.FILES) #т.к. идет работа сохранея файлов , то надо добавить request.FILES
 
-        if form.is_valid():  # проверяет поля на корректность заполнения
-            form.save()  # - для связанной формы с моделью можно напрямую сохрянть данные в БД
-            return redirect('home')
-            # для формы не связнной делается так:
-            # try:
-            #     Women.objects.create(
-            #         **form.cleaned_data)  # поля названия формы должны совадать с полями модели, чтобы можно было их раскрыть при не связоной с моделью
-            #     return redirect('home')  # после отпарвления данных выходим на главную страницу
-            # except Exception as e:
-            #     print(e)
-            #     form.add_error(None, 'Ошибка добавления поста')
-    else:
+
+
+
+
+
+
+
+# def addpage(request):
+#     if request.method == 'POST':
+#         print(request.POST)
+#         form = AddPostForm(request.POST, request.FILES) #т.к. идет работа сохранея файлов , то надо добавить request.FILES
+#
+#         if form.is_valid():  # проверяет поля на корректность заполнения
+#             form.save()  # - для связанной формы с моделью можно напрямую сохрянть данные в БД
+#             return redirect('home')
+#             # для формы не связнной делается так:
+#             # try:
+#             #     Women.objects.create(
+#             #         **form.cleaned_data)  # поля названия формы должны совадать с полями модели, чтобы можно было их раскрыть при не связоной с моделью
+#             #     return redirect('home')  # после отпарвления данных выходим на главную страницу
+#             # except Exception as e:
+#             #     print(e)
+#             #     form.add_error(None, 'Ошибка добавления поста')
+#     else:
+#         form = AddPostForm()
+#     data = {'menu': menu, 'title': 'Добавление статьи', 'form': form}
+#
+#     return render(request, 'women/addpage.html', data)
+
+# ЗАМЕНА НА КЛАСС ПРЕДСТАВЛЕНИЯ
+class AddPage(View):
+    def get(self, request):
         form = AddPostForm()
-    data = {'menu': menu, 'title': 'Добавление статьи', 'form': form}
+        return render(request, 'women/addpage.html', {'menu': menu, 'title': 'Добавление статьи', 'form': form})
 
-    return render(request, 'women/addpage.html', data)
+    def post(self, request):
+        form = AddPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+
+        return render(request, 'women/addpage.html', {'menu': menu, 'title': 'Добавление статьи', 'form': form})
+
+
+
+
+
+
+
+
 
 
 def contact(request):
@@ -99,32 +178,84 @@ def login(request):
     return HttpResponse("Авторизация")
 
 
-def show_category(request, cat_slug):
-    category = get_object_or_404(Category, slug=cat_slug)
-    posts = Women.published.filter(cat_id=category.pk).select_related('cat')
-
-    data = {
-        'title': f'Отображение по {category.name}',
-        'menu': menu,
-        'posts': posts,
-        # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter----- в данном случае выведуся все записи с паблишед = 1, но мы можем еще раз отфилтровать
-        'cat_selected': category.pk,
-    }
-    return render(request, 'women/index.html', context=data)
 
 
-def show_tag_postlist(request, tag_slug):
-    tag = get_object_or_404(TagPost, slug=tag_slug)
-    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED)  # обращение к объектам (к постам) данного тэга
 
-    data = {
-        'title': f'Тег: {tag.tag}',
-        'menu': menu,
-        'posts': posts,
-        'cat_selected': None,
-    }
 
-    return render(request, 'women/index.html', context=data)
+
+
+
+
+# def show_category(request, cat_slug):
+#     category = get_object_or_404(Category, slug=cat_slug)
+#     posts = Women.published.filter(cat_id=category.pk).select_related('cat')
+#
+#     data = {
+#         'title': f'Отображение по {category.name}',
+#         'menu': menu,
+#         'posts': posts,
+#         # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter----- в данном случае выведуся все записи с паблишед = 1, но мы можем еще раз отфилтровать
+#         'cat_selected': category.pk,
+#     }
+#     return render(request, 'women/index.html', context=data)
+
+# ЗАмена show_category на класс
+class WomenCategory(ListView):
+    template_name = 'women/index.html'
+    context_object_name = 'posts'  # хранит в перменной 'posts' возвращенный get_queryset(self), как в ф-ии data = {'posts': posts} - это тот же'posts',
+    # который передается в шаблон ТАКЖЕ ЭТО object_list
+
+    allow_empty = False  # если указать несуществующий слаг, то увидим пустую страницу, а нам бы хотелось увидеть ошибку 404 – страница не найдена.
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        cat = context['posts'][0].cat
+        context['title'] = 'Категория - ' + cat.name
+        context['menu'] = menu
+        context['cat_selected'] = cat.id
+
+        return context
+
+    def get_queryset(self):
+        return Women.published.filter(cat__slug=self.kwargs['cat_slug']).select_related('cat')
+
+
+
+
+
+
+
+# def show_tag_postlist(request, tag_slug):
+#     tag = get_object_or_404(TagPost, slug=tag_slug)
+#
+#     posts = tag.tags.filter(is_published=Women.Status.PUBLISHED)  # обращение к объектам (к постам) данного тэга
+#
+#     data = {
+#         'title': f'Тег: {tag.tag}',
+#         'menu': menu,
+#         'posts': posts,
+#         'cat_selected': None,
+#     }
+#
+#     return render(request, 'women/index.html', context=data)
+
+# ЗАМЕНА show_tag_postlist
+class WomenTags(ListView): # url 'tag/<slug:tag_slug>/'
+    template_name = 'women/index.html'
+    context_object_name = 'posts'
+    allow_empty = False
+
+    def get_queryset(self):
+        return Women.objects.filter(tags__slug=self.kwargs['tag_slug']).select_related('cat')
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Тег - ' + self.kwargs['tag_slug']
+        context['menu'] = menu
+        context['cat_selected'] = None
+        return context
 
 
 def page_not_found(request, exception):
