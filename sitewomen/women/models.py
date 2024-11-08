@@ -13,6 +13,7 @@ def translit_to_eng(s: str) -> str:
 
     return "".join(map(lambda x: d[x] if d.get(x, False) else x, s.lower()))
 
+
 # пользовтельский менеджер
 class PublishedModel(models.Manager):
     def get_queryset(self):
@@ -27,23 +28,25 @@ class Women(models.Model):
 
     title = models.CharField(max_length=255, verbose_name="Заголовок")
     slug = models.SlugField(max_length=255, db_index=True, unique=True, validators=[
-        MinLengthValidator(5),  #валидаторы для проверки на сервере
+        MinLengthValidator(5),  # валидаторы для проверки на сервере
         MaxLengthValidator(100),
     ])
-    photo = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None, blank=True, null=True, verbose_name="Фото") #поле для файлов
+    photo = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None, blank=True, null=True,
+                              verbose_name="Фото")  # поле для файлов
     content = models.TextField(blank=True, verbose_name="Текст статьи")
     time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
     time_update = models.DateTimeField(auto_now=True, verbose_name="Время изменения")
     is_published = models.BooleanField(choices=tuple(map(lambda x: (bool(x[0]), x[1]), Status.choices)),
-                                       default=Status.DRAFT, verbose_name="Статус")  # меняется добавляется choices из-за добавления status'a ДАЛЕЕ позже замено на перебор в булевые згначения для админ панели, чтобы было видно нынешние показали этого поля и можно было выбирать
+                                       default=Status.DRAFT,
+                                       verbose_name="Статус")  # меняется добавляется choices из-за добавления status'a ДАЛЕЕ позже замено на перебор в булевые згначения для админ панели, чтобы было видно нынешние показали этого поля и можно было выбирать
     cat = models.ForeignKey('Category',
                             on_delete=models.PROTECT,
-                            related_name="posts", verbose_name="Категории")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
+                            related_name="posts",
+                            verbose_name="Категории")  # вторичный ключ для таблицы Category// models.PROTECT - при удалении из первичной таблицы (Category),
     # удалятся все записи из вторичной (Women)
     tags = models.ManyToManyField('TagPost', blank=True, related_name="tags", verbose_name="Тэги")
-    husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman', verbose_name="Муж")
-
-
+    husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman',
+                                   verbose_name="Муж")
 
     objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects при создании пользовтаельского менеджера
     published = PublishedModel()  # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter
@@ -53,16 +56,15 @@ class Women(models.Model):
         indexes = [
             models.Index(fields=['-time_create']),
         ]
-        verbose_name = 'Известные женщины' #для название в ед.ч. таблицы в admin для самой модели
-        verbose_name_plural = 'Известные женщины' #для название во мн.ч. таблицы в admin для самой модели
+        verbose_name = 'Известные женщины'  # для название в ед.ч. таблицы в admin для самой модели
+        verbose_name_plural = 'Известные женщины'  # для название во мн.ч. таблицы в admin для самой модели
 
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_slug': self.slug})  # для возврата url каждого экземпляра строки из БД
 
-
-    #ф-я save автоматически включается при сохранени записи
-    #функция чтобы автоматически заполнялся slug. Т.к. мы его запретили редактировать, т.е. он пустой при создании. Он сможет создаться один раз пустым, а
-    #второй раз нет, т.к. у нас поле slug должно быть уникальным (unique=True)
+    # ф-я save автоматически включается при сохранени записи
+    # функция чтобы автоматически заполнялся slug. Т.к. мы его запретили редактировать, т.е. он пустой при создании. Он сможет создаться один раз пустым, а
+    # второй раз нет, т.к. у нас поле slug должно быть уникальным (unique=True)
 
     # def save(self, *args, **kwargs):
     #     # self.slug = slugify(self.title , allow_unicode=True) #вместо allow_unicode=True дял перевода толкьо для латиницы,
@@ -71,17 +73,18 @@ class Women(models.Model):
     #     super().save(*args, **kwargs) #Но есть путь гораздо проще, но он применим только для админ-панели.
     #     # Уберем метод save() из модели Women, а в классе WomenAdmin пропишем следующий атрибут: prepopulated_fields = {"slug": ("title",)}
 
-    # def __str__(self):
-    #     return self.title
+    def __str__(self):
+        return self.title
 
 
-class  Category(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=100, db_index=True, verbose_name="Категория")
     slug = models.SlugField(max_length=255, unique=True, db_index=True)
 
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+
     def get_absolute_url(self):
         return reverse('category', kwargs={'cat_slug': self.slug})
 
@@ -110,4 +113,5 @@ class Husband(models.Model):
 
 # модель новой таблицы, в которой будут храниться ссылки на загруженные файл
 class UploadFiles(models.Model):
-    file = models.FileField(upload_to='uploads_model') #upload_to – каталог, в который будет происходить загрузка файлов
+    file = models.FileField(
+        upload_to='uploads_model')  # upload_to – каталог, в который будет происходить загрузка файлов
