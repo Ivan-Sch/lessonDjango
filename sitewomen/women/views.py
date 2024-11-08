@@ -4,7 +4,7 @@ from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 from django.views import View
-from django.views.generic import TemplateView, ListView, DetailView, FormView
+from django.views.generic import TemplateView, ListView, DetailView, FormView, CreateView, UpdateView, DeleteView
 
 from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost, UploadFiles
@@ -177,27 +177,57 @@ class ShowPost(DetailView):
 
 # ЗАМЕНА AddPage(View) на FormView
 
-class AddPage(FormView):
-    form_class = AddPostForm #указываеься имя формы
+# class AddPage(FormView):
+#     form_class = AddPostForm #указываеься имя формы
+#     template_name = 'women/addpage.html'
+#     success_url = reverse_lazy('home') # Для перенаправления после отправки формы. reverse(). Она пытается
+#     # построить маршрут по имени 'home', но этот маршрут на момент формирования класса AddPage не определен.
+#     # В таких ситуациях следует пользоваться другой аналогичной функцией reverse_lazy()
+#     extra_context = {
+#         'menu': menu,
+#         'title': 'Добавление статьи',
+#     }
+#
+#     # Для сохраения данных в БД Этот метод вызывается только после успешной проверки всех переданных данных
+#     # формы. Параметр form – это ссылка на заполненную форму.
+#     # Так как метод form_valid() вызывается после проверки данных, то в нем доступен словарь form.cleaned_data
+#     def form_valid(self, form):
+#         form.save()
+#         return super().form_valid(form)
+
+# ЗАМЕНА AddPage(FormView) на CreateView
+class AddPage(CreateView): #обращение к форме в html через form
+    form_class = AddPostForm # он берет сам автоматически , можно прописывать модель
+    # model = Women
+    # fields = '__all__' #или данные ['title', 'slug', 'content', 'is_published', 'cat'] вводятся все поля которые обязательные в model
+
+
     template_name = 'women/addpage.html'
-    success_url = reverse_lazy('home') # Для перенаправления после отправки формы. reverse(). Она пытается
-    # построить маршрут по имени 'home', но этот маршрут на момент формирования класса AddPage не определен.
-    # В таких ситуациях следует пользоваться другой аналогичной функцией reverse_lazy()
+    success_url = reverse_lazy('home')
     extra_context = {
         'menu': menu,
         'title': 'Добавление статьи',
     }
+#ДЛЯЯ ОБНОВЛЕНИЯ ДАННЫХ в БД
+class UpdatePage(UpdateView):
+    model = Women
+    fields = ['title', 'content', 'photo', 'is_published', 'cat']
+    template_name = 'women/addpage.html'
+    success_url = reverse_lazy('home')
+    extra_context = {
+        'menu': menu,
+        'title': 'Редактирование статьи',
+    }
 
-    # Для сохраения данных в БД Этот метод вызывается только после успешной проверки всех переданных данных
-    # формы. Параметр form – это ссылка на заполненную форму.
-    # Так как метод form_valid() вызывается после проверки данных, то в нем доступен словарь form.cleaned_data
-    def form_valid(self, form):
-        form.save()
-        return super().form_valid(form)
-
-
-
-
+# ДЛЯ УДАЛЕНИЯ ДАННЫХ ИЗ БД
+class DeletePage(DeleteView):
+    model = Women
+    template_name = 'women/deletepage.html'
+    success_url = reverse_lazy('home')
+    extra_context = {
+        'menu': menu,
+        'title': 'Удаление статьи',
+    }
 
 
 
