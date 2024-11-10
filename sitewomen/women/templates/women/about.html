@@ -2,12 +2,16 @@
 
 {% block content %}
 <h1>{{title}}</h1>
-<!--Для формы отправки файла -->
-<form action="" method="post" enctype="multipart/form-data"> <!-- action- обработчик //// обязательный параметр enctype="multipart/form-data"-->
-    {% csrf_token %}
-<!--    <p ><input type="file" name="file_upload"></p>--> <!--  если бы не было формы-->
-    {{ form.as_p }}
-    <p ><button type="submit">Отправить</button></p>
-</form>
+<!--&lt;!&ndash;Для формы отправки файла &ndash;&gt;-->
+<!--<form action="" method="post" enctype="multipart/form-data"> &lt;!&ndash; action- обработчик //// обязательный параметр enctype="multipart/form-data"&ndash;&gt;-->
+<!--    {% csrf_token %}-->
+<!--&lt;!&ndash;    <p ><input type="file" name="file_upload"></p>&ndash;&gt; &lt;!&ndash;  если бы не было формы&ndash;&gt;-->
+<!--    {{ form.as_p }}-->
+<!--    <p ><button type="submit">Отправить</button></p>-->
+<!--</form>-->
+{% for item in page_obj %} <!--page_obj- это объект из списков ЖЕНЩИН на данной странице, выбираем эти элементы женщины из страницы-->
+<p>{{ item.title }}</p>
+{% endfor %}
+
 
 {% endblock %}

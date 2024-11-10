@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseNotFound, Http404, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -62,23 +63,24 @@ class WomenHome(DataMixin, ListView):
 
     # Для отображения данных которые передается в шаблон (В нем используется posts), ListView формирует сам {% for p in object_list %}, вместо {% for p in posts %} как было до этого
     context_object_name = 'posts'  # хранит в перменной 'posts' возвращенный get_queryset(self), как в ф-ии data = {'posts': posts} - это тот же'posts', а также хранит данные через model = Women
-
+    title_page = 'Главная страница'
+    cat_selected = 0
     # который передается в шаблон ТАКЖЕ ЭТО object_list
 
     # def get_context_data(self, *, object_list=None, **kwargs):
     #     context = super().get_context_data(**kwargs)
-    #     context['title'] = 'Главная страница'
+    #     context['title'] = 'Главная страница' 
     #     context['menu'] = menu
     #     context['cat_selected'] = 0
     #     return context
     #
 
     # ДЛЯ DataMixin
-    def get_context_data(self, *, object_list=None, **kwargs):
-        return self.get_mixin_context(super().get_context_data(**kwargs),
-                                      title='Главная страница',
-                                      cat_selected=0,
-                                      )
+    # def get_context_data(self, *, object_list=None, **kwargs):
+    #     return self.get_mixin_context(super().get_context_data(**kwargs),
+    #                                   title='Главная страница',
+    #                                   cat_selected=0,
+    #                                   )
 
     def get_queryset(self):
         return Women.published.all().select_related('cat')
@@ -92,24 +94,32 @@ def handle_uploaded_file(f):
 
 
 def about(request):
-    if request.method == "POST":
-        form = UploadFileForm(request.POST, request.FILES)  # т.к. работает с фалйми то ипшется второй аргумент
-        if form.is_valid():
-            # # ДЛЯ НЕ СВЯЗАННОЙ ФОРМЫ С МОДЕЛЬЮ (2 способа)
-            # 1 способ когда не згаржуем в БД
-            # handle_uploaded_file(request.FILES['file'])  # для сохранения файла на сервер c не связанной таблицей
-            # # "files", потому что в форме у нас поле files, если бы было без формы, то смотрели бы на about.html name="file_upload">
+    # if request.method == "POST":
+    #     form = UploadFileForm(request.POST, request.FILES)  # т.к. работает с фалйми то ипшется второй аргумент
+    #     if form.is_valid():
+    #         # # ДЛЯ НЕ СВЯЗАННОЙ ФОРМЫ С МОДЕЛЬЮ (2 способа)
+    #         # 1 способ когда не згаржуем в БД
+    #         # handle_uploaded_file(request.FILES['file'])  # для сохранения файла на сервер c не связанной таблицей
+    #         # # "files", потому что в форме у нас поле files, если бы было без формы, то смотрели бы на about.html name="file_upload">
+    #
+    #         # 2 способ когда загружем в БД
+    #         fp = UploadFiles(file=form.cleaned_data[
+    #             'file'])  # UploadFiles - модель. СОХРАНЕНИЕ бдует в upload_to – каталог т .к. указалив самой модели,
+    #         # если мы хотим загружать в общую папку то в конфигирации MEDIA_ROOT = BASE_DIR / 'media'
+    #         fp.save()
+    #
+    # else:
+    #     form = UploadFileForm()
+    contact_list = Women.published.all()
+    paginator = Paginator(contact_list, 3)  # делаем пигинацию из 3 страниц (разбивка) из списка contact_list
+    print(request.GET)
+    page_number = request.GET.get('page')
+    # page_number= paginator.page(page_number) #можно так
 
-            # 2 способ когда загружем в БД
-            fp = UploadFiles(file=form.cleaned_data[
-                'file'])  # UploadFiles - модель. СОХРАНЕНИЕ бдует в upload_to – каталог т .к. указалив самой модели,
-            # если мы хотим загружать в общую папку то в конфигирации MEDIA_ROOT = BASE_DIR / 'media'
-            fp.save()
+    page_obj = paginator.get_page(page_number)  # получаем объект текущей страницы по номеру
+    # page_obj = page_number.object_list #можно так
 
-    else:
-        form = UploadFileForm()
-
-    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu, 'form': form})
+    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu, 'page_obj': page_obj})
 
 
 def show_post(request, post_slug):
