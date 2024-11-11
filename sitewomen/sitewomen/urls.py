@@ -24,6 +24,9 @@ from women.views import page_not_found
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('women.urls')),
+    path('users/', include('users.urls', namespace="users")), #namespace нужен чтобы без конфликтов обращаться,
+    # Таким образом, мы дополнительно изолируем приложение users от возможных конфликтов в именах маршрутов других приложений,
+    # для этого в urls приложения пишут app_name = "users".
     path("__debug__/", include("debug_toolbar.urls")),
 ]
 

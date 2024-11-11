@@ -38,15 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions', #для Установка улучшенной пакета django-extensions
     'women.apps.WomenConfig',
+    "users.apps.UsersConfig", #для приложения авторизации
     'debug_toolbar', #для оптимизации используют dj debug-tooolbar
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',#для приложения авторизации уже было
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',#для приложения авторизации уже было
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware', #для оптимизации используют dj debug-tooolbar
