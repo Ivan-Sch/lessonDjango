@@ -68,6 +68,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'users.context_processors.get_women_context', #для шаблонного контекстного процессора
+                # ,context_processors.py -  get_women_context фу-я
             ],
         },
     },
