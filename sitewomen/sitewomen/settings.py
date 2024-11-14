@@ -139,3 +139,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#задает URL-адрес, на который следует перенаправлять пользователя после успешной авторизации;
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
+# LOGIN_URL – определяет URL-адрес, на который следует перенаправить
+# неавторизованного пользователя при попытке посетить закрытую страницу сайта;
+# LOGOUT_REDIRECT_URL – задает URL-адрес, на который перенаправляется пользователь после выхода.
