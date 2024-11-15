@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.db import models
 from django.template.defaultfilters import slugify
@@ -47,6 +48,10 @@ class Women(models.Model):
     tags = models.ManyToManyField('TagPost', blank=True, related_name="tags", verbose_name="Тэги")
     husband = models.OneToOneField('Husband', on_delete=models.SET_NULL, null=True, blank=True, related_name='wuman',
                                    verbose_name="Муж")
+    author = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name='posts', null=True,
+                               default=None) #для связки с БД пользователей, где get_user_model()-  мы обращаемся к модели User
+    # с помощью функции get_user_model(). Это считается предпочтительной практикой для фреймворка Django.
+    # ТАКЖЕ для этого в класс addpage добавялется функция для проверки формы, где мы добавялем автора к посту ЖЕНЩИНЫ Women
 
     objects = models.Manager()  # для сохранения стандартного мендежра, чтобы потом можно было обращаться через objects при создании пользовтаельского менеджера
     published = PublishedModel()  # пользовтельский менеджер - возвращает сразу отфильтрованный qwery_set по правилу в filter

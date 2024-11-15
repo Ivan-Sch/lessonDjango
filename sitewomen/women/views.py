@@ -1,3 +1,5 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseNotFound, Http404, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render, redirect, get_object_or_404
@@ -93,6 +95,8 @@ def handle_uploaded_file(f):
             destination.write(chunk)
 
 
+@login_required #для Чтобы закрыть сайт "о нас" от неавторизованных пользователей, берется декоратор.
+# Чтобы было наше перенаправление на форму вхроа в конфиге пишется:LOGIN_URL = 'users:login' ИЛИИ @login_required(login_url='/admin/')
 def about(request):
     # if request.method == "POST":
     #     form = UploadFileForm(request.POST, request.FILES)  # т.к. работает с фалйми то ипшется второй аргумент
@@ -218,7 +222,9 @@ class ShowPost(DataMixin, DetailView):
 #         return super().form_valid(form)
 
 # ЗАМЕНА AddPage(FormView) на CreateView
-class AddPage(DataMixin, CreateView):  # обращение к форме в html через form
+
+# LoginRequiredMixin - вместо декоратора login_required для перенавпрления для не авторизорованного пол-я
+class AddPage(LoginRequiredMixin, DataMixin, CreateView):  # обращение к форме в html через form
     form_class = AddPostForm  # он берет сам автоматически , если прописывать модель
     # model = Women
     # fields = '__all__' #или данные ['title', 'slug', 'content', 'is_published', 'cat'] вводятся все поля которые обязательные в model
@@ -226,6 +232,16 @@ class AddPage(DataMixin, CreateView):  # обращение к форме в htm
     template_name = 'women/addpage.html'
     success_url = reverse_lazy('home')
     title_page = "Добавление статьи"
+    # login_url = '/admin/' #чтобы перенпарвиться если, пользов-ль не авторизован , но у нас в КОНФИГЕ прописано
+
+    # Для добавления данных пользовтаеля в БД Women  в author
+
+    # form_valid вызывается автоматически после успешнйо првоерки отправленной формы addpage
+    def form_valid(self, form):
+        w = form.save(commit=False) #commit=False -  не записываются в таблицу БД, а формируются только в памяти
+        print(self.request.userUser)
+        w.author = self.request.user # author, присваивая ему объект user текущего пользователя
+        return super().form_valid(form)
 
 
 # ДЛЯЯ ОБНОВЛЕНИЯ ДАННЫХ в БД
