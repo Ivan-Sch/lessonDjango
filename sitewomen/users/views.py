@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 
-from users.forms import LoginUserForm
+from users.forms import LoginUserForm, RegisterUserForm
 
 
 # def login_user(request):
@@ -38,3 +38,18 @@ class LoginUser(LoginView):
 #     logout(request)
 #     return HttpResponseRedirect(reverse('users:login'))
 # КЛАСС LogoutView мы прописали срауз в URLS
+
+
+
+# Для регистрации пользов-я
+def register(request):
+    if request.method == "POST":
+        form = RegisterUserForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)  # создание объекта без сохранения в БД
+            user.set_password(form.cleaned_data['password']) #ХЕШИРОВАНИЕ ПАРОЛЯ
+            user.save()
+            return render(request, 'users/register_done.html')
+    else:
+        form = RegisterUserForm()
+    return render(request, 'users/register.html', {'form': form})
