@@ -1,12 +1,13 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView
+from django.views.generic import CreateView, UpdateView
 
-from users.forms import LoginUserForm, RegisterUserForm
+from users.forms import LoginUserForm, RegisterUserForm, ProfileUserForm
 
 
 # def login_user(request):
@@ -60,3 +61,23 @@ class RegisterUser(CreateView):
     template_name = 'users/register.html'
     extra_context = {'title': "Регистрация"}
     success_url = reverse_lazy('users:login')
+
+# Для изменения профиля
+class ProfileUser(LoginRequiredMixin, UpdateView):
+    model = get_user_model()
+    form_class = ProfileUserForm
+    template_name = 'users/profile.html'
+    extra_context = {'title': "Профиль пользователя"}
+    user = model.objects.get(username='Ivan')
+    print(user.first_name, user.last_name)
+
+    def get_success_url(self):
+        return reverse_lazy('users:profile')
+
+#рофайл будет открываться только для текущего пользователя, либо сделано перенаправление на страницу авторизации для неавторизованных пользователей.
+    def get_object(self, queryset=None):
+
+
+        user = self.request.user
+        print(f"User: {user}, First name: {user.first_name}, Last name: {user.last_name}")
+        return self.request.user #сохраянет резульат в form в шаблоне можно использовать

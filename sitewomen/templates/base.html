@@ -24,11 +24,8 @@
 <!--user берется из   settings контесный процессор 'django.contrib.auth.context_processors.auth' , у auth есть user-->
 {% if user.is_authenticated %}
 <!--	<li class="last"> {{user.username}} | <a href="{% url 'users:logout' %}">Выйти</a></li>-->
-    <li class="last">{{ user.username }} | <form method="post" action="{% url 'users:logout' %}">
-    {% csrf_token %}
-    <button type="submit">Выйти</button>
-</form>
-</li>
+				<li class="last"><a href="{% url 'users:profile' %}">{{user.username}}</a> | <a href="{% url 'users:logout' %}">Выйти</a></li>
+
 {% else %}
 	<li class="last"><a href="{% url 'users:login' %}">Войти</a> | <a href="{% url 'users:register' %}">Регистрация</a></li>
 {% endif %}
