@@ -151,4 +151,7 @@ LOGIN_URL = 'users:login'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend', #стандартная проверка по username and password
     'users.authentication.EmailAuthBackend', #ссылка на бэкенд аунтификацию (своя логика проверки по E-mail)
+
 ]
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"# вместо инструкций для восставноления пароля будет приходить в консоль
+
