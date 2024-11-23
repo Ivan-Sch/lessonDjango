@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -67,17 +68,14 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = ProfileUserForm
     template_name = 'users/profile.html'
-    extra_context = {'title': "Профиль пользователя"}
-    user = model.objects.get(username='Ivan')
-    print(user.first_name, user.last_name)
+
+    extra_context = {'title': "Профиль пользователя", 'default_image': settings.DEFAULT_USER_IMAGE}
 
     def get_success_url(self):
         return reverse_lazy('users:profile')
 
 #рофайл будет открываться только для текущего пользователя, либо сделано перенаправление на страницу авторизации для неавторизованных пользователей.
     def get_object(self, queryset=None):
-
-
         user = self.request.user
         print(f"User: {user}, First name: {user.first_name}, Last name: {user.last_name}")
         return self.request.user #сохраянет резульат в form в шаблоне можно использовать
